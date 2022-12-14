@@ -1,29 +1,14 @@
-"""
-
- OMRChecker
-
- Author: Udayraj Deshmukh
- Github: https://github.com/Udayraj123
-
-"""
-
 import argparse
 import os
 from csv import QUOTE_NONNUMERIC
 from pathlib import Path
 from time import localtime, strftime, time
-
 import cv2
 import numpy as np
 import pandas as pd
-
 from src import constants
-
-# TODO: use open_config_with_defaults after making a Config class.
 from src.config import CONFIG_DEFAULTS as config
 from src.logger import logger
-
-# TODO: further break utils down and separate the imports
 from src.utils.imgutils import (
     ImageUtils,
     MainOperations,
@@ -31,28 +16,16 @@ from src.utils.imgutils import (
     setup_dirs,
 )
 
-# Note: dot-imported paths are relative to current directory
 from .processors.manager import ProcessorManager
 from .template import Template
-
-# import matplotlib.pyplot as plt
-
 
 # Load processors
 PROCESSOR_MANAGER = ProcessorManager()
 STATS = constants.Stats()
 
-# TODO(beginner task) :-
-# from colorama import init
-# init()
-# from colorama import Fore, Back, Style
-
-
 def entry_point(root_dir, curr_dir, args):
     return process_dir(root_dir, curr_dir, args)
 
-
-# TODO: make this function pure
 def process_dir(root_dir, curr_dir, args, template=None):
 
     # Update local template (in current recursion stack)
@@ -86,7 +59,6 @@ def process_dir(root_dir, curr_dir, args, template=None):
             )
             return
 
-        # TODO: get rid of args here
         args_local = args.copy()
         if "OverrideFlags" in template.options:
             args_local.update(template.options["OverrideFlags"])
@@ -100,7 +72,6 @@ def process_dir(root_dir, curr_dir, args, template=None):
         )
         logger.info("\tAuto Alignment     : " + str(args_local["autoAlign"]))
         logger.info("\tUsing Template     : " + str(template))
-        # Print options
         for pp in template.pre_processors:
             logger.info(f"\tUsing preprocessor: {pp.__class__.__name__:13}")
 
@@ -123,7 +94,6 @@ def process_dir(root_dir, curr_dir, args, template=None):
 
 
 def check_and_move(error_code, file_path, filepath2):
-    # print("Dummy Move:  "+file_path, " --> ",filepath2)
     STATS.files_not_moved += 1
     return True
 
@@ -148,8 +118,6 @@ def process_omr(template, omr_resp):
     # symbol for absent response
     unmarked_symbol = ""
 
-    # print("omr_resp",omr_resp)
-
     # Multi-column/multi-row questions which need to be concatenated
     for q_no, resp_keys in template.concatenations.items():
         csv_resp[q_no] = "".join([omr_resp.get(k, unmarked_symbol) for k in resp_keys])
@@ -158,9 +126,6 @@ def process_omr(template, omr_resp):
     for q_no in template.singles:
         csv_resp[q_no] = omr_resp.get(q_no, unmarked_symbol)
 
-    # Note: concatenations and singles together should be mutually exclusive
-    # and should cover all questions in the template(exhaustive)
-    # TODO: ^add a warning if omr_resp has unused keys remaining
     return csv_resp
 
 
@@ -186,8 +151,6 @@ def setup_output(paths, template):
     # Include current output paths
     ns.paths = paths
 
-    # custom sort: To use integer order in question names instead of
-    # alphabetical - avoids q1, q10, q2 and orders them q1, q2, ..., q10
     ns.resp_cols = sorted(
         list(template.concatenations.keys()) + template.singles,
         key=lambda x: int(x[1:]) if ord(x[1]) in range(48, 58) else 0,
@@ -197,7 +160,6 @@ def setup_output(paths, template):
     ns.OUTPUT_SET = []
     ns.files_obj = {}
     ns.filesMap = {
-        # todo: use os.path.join(paths.results_dir, f"Results_{TIME_NOW_HRS}.csv") etc
         "Results": f"{paths.results_dir}Results_{TIME_NOW_HRS}.csv",
         "MultiMarked": f"{paths.manual_dir}MultiMarkedFiles.csv",
         "Errors": f"{paths.manual_dir}ErrorFiles.csv",
@@ -222,33 +184,9 @@ def setup_output(paths, template):
 
     return ns
 
-
-# TODO: Refactor into new process flow.
 def preliminary_check():
     pass
-    # filesCounter=0
-    # mws, mbs = [],[]
-    # # PRELIM_CHECKS for thresholding
-    # if(config.PRELIM_CHECKS):
-    #     # TODO: add more using unit testing
-    #     TEMPLATE = TEMPLATES["H"]
-    #     ALL_WHITE = 255 * np.ones((TEMPLATE.dimensions[1],TEMPLATE.dimensions[0]), dtype='uint8')
-    #     response_dict, final_marked, multi_marked, multiroll = read_response(
-    #         "H", ALL_WHITE, name="ALL_WHITE", save_dir=None, autoAlign=True
-    #     )
-    #     print("ALL_WHITE",response_dict)
-    #     if(response_dict!={}):
-    #         print("Preliminary Checks Failed.")
-    #         exit(2)
-    #     ALL_BLACK = np.zeros((TEMPLATE.dimensions[1],TEMPLATE.dimensions[0]), dtype='uint8')
-    #     response_dict, final_marked, multi_marked, multiroll = read_response(
-    #      "H", ALL_BLACK, name="ALL_BLACK", save_dir=None, autoAlign=True
-    #     )
-    #     print("ALL_BLACK",response_dict)
-    #     show("Confirm : All bubbles are black",final_marked,1,1)
 
-
-# TODO: take a look at 'out.paths'
 def process_files(omr_files, template, args, out):
     start_time = int(time())
     files_counter = 0
@@ -265,7 +203,6 @@ def process_files(omr_files, template, args, out):
             f"\n({files_counter}) Opening image: \t{file_path}\tResolution: {in_omr.shape}"
         )
 
-        # TODO: Get rid of saveImgList
         for i in range(ImageUtils.save_image_level):
             ImageUtils.reset_save_img(i + 1)
 
@@ -341,7 +278,6 @@ def process_files(omr_files, template, args, out):
 
         out.OUTPUT_SET.append([file_name] + resp_array)
 
-        # TODO: Add roll number validation here
         if multi_marked == 0:
             STATS.files_not_moved += 1
             new_file_path = save_dir + file_id
@@ -355,13 +291,6 @@ def process_files(omr_files, template, args, out):
                 header=False,
                 index=False,
             )
-            # Todo: Add score calculation from template.json
-            # print(
-            #     "[%d] Graded with score: %.2f" % (files_counter, score),
-            #     "\t file_id: ",
-            #     file_id,
-            # )
-            # print(files_counter,file_id,resp['Roll'],'score : ',score)
         else:
             # multi_marked file
             logger.info("[%d] multi_marked, moving File: %s" % (files_counter, file_id))
@@ -377,16 +306,8 @@ def process_files(omr_files, template, args, out):
                     header=False,
                     index=False,
                 )
-            # else:
-            #     TODO:  Add appropriate record handling here
-            #     pass
 
     print_stats(start_time, files_counter)
-
-    # flush after every 20 files for a live view
-    # if(files_counter % 20 == 0 or files_counter == len(omr_files)):
-    #     for file_key in out.filesMap.keys():
-    #         out.files_obj[file_key].flush()
 
 
 def print_stats(start_time, files_counter):
@@ -428,25 +349,10 @@ def print_stats(start_time, files_counter):
             "\nTip: To see some awesome visuals, open config.json and increase 'show_image_level'"
         )
 
-    # evaluate_correctness(out)
-
-    # Use this data to train as +ve feedback
-    # if config.outputs.show_image_level >= 0 and files_counter > 10:
-    #     for x in [thresholdCircles]:#,badThresholds,veryBadPoints, mws, mbs]:
-    #         if(x != []):
-    #             x = pd.DataFrame(x)
-    #             print(x.describe())
-    #             plt.plot(range(len(x)), x)
-    #             plt.title("Mystery Plot")
-    #             plt.show()
-    #         else:
-    #             print(x)
-
 
 # Evaluate accuracy based on OMRDataset file generated through moderation
 # portal on the same set of images
 def evaluate_correctness(out):
-    # TODO: test_file WOULD BE RELATIVE TO INPUT SUBDIRECTORY NOW-
     test_file = "inputs/OMRDataset.csv"
     if os.path.exists(test_file):
         logger.info("\nStarting evaluation for: " + test_file)
@@ -474,8 +380,7 @@ def evaluate_correctness(out):
         x_df = pd.DataFrame(out.OUTPUT_SET, dtype=str, columns=test_cols).set_index(
             "file_id"
         )
-        # print("x_df",x_df.head())
-        # print("\ny_df",y_df.head())
+
         intersection = y_df.index.intersection(x_df.index)
 
         # Checking if the merge is okay

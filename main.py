@@ -1,21 +1,10 @@
-"""
-
- OMRChecker
-
- Author: Udayraj Deshmukh
- Github: https://github.com/Udayraj123
-
-"""
-
-from src.logger import logger
+from logger import logger
+from src.core import entry_point
 
 logger.info(f"Loading OMRChecker modules...")
-# It takes a few seconds for the imports
 
 import argparse
 from pathlib import Path
-
-from src.core import entry_point
 
 # construct the argument parse and parse the arguments
 argparser = argparse.ArgumentParser()
@@ -24,7 +13,6 @@ argparser.add_argument(
     "-i",
     "--inputDir",
     default=["inputs"],
-    # https://docs.python.org/3/library/argparse.html#nargs
     nargs="*",
     required=False,
     type=str,
@@ -41,7 +29,6 @@ argparser.add_argument(
     help="Specify an output directory.",
 )
 
-# TODO: separate the interactive modes from main code
 argparser.add_argument(
     "-a",
     "--autoAlign",
@@ -69,7 +56,6 @@ argparser.add_argument(
 ) = argparser.parse_known_args()
 args = vars(args)
 
-# FIX: remove join
 if len(unknown) > 0:
     logger.warning("".join(["\nError: Unknown arguments: ", unknown]))
     argparser.print_help()

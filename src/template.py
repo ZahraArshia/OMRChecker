@@ -1,18 +1,6 @@
-"""
-
- OMRChecker
-
- Author: Udayraj Deshmukh
- Github: https://github.com/Udayraj123
-
-"""
-
 from copy import deepcopy
-
 import numpy as np
-
 from src.logger import logger
-
 from .constants import QTYPE_DATA, SCHEMA_DEFAULTS_PATH, TEMPLATE_DEFAULTS_PATH
 from .utils.file import load_json, validate_json
 from .utils.object import OVERRIDE_MERGER
@@ -53,7 +41,6 @@ class Pt:
 
 class QBlock:
     def __init__(self, dimensions, key, orig, traverse_pts, empty_val):
-        # dimensions = (width, height)
         self.dimensions = tuple(round(x) for x in dimensions)
         self.key = key
         self.orig = orig
@@ -68,8 +55,6 @@ class Template:
         json_obj = open_template_with_defaults(template_path)
         self.path = template_path
         self.q_blocks = []
-        # TODO: ajv validation - throw exception on key not exist
-        # TODO: extend DotMap here and only access keys that need extra parsing
         self.dimensions = json_obj["dimensions"]
         self.global_empty_val = json_obj["emptyVal"]
         self.bubble_dimensions = json_obj["bubbleDimensions"]
@@ -254,7 +239,7 @@ def gen_grid(bubble_dimensions, global_empty_val, key, rectParams):
             "qNos",
             "vals",
             "orient",
-            "col_orient",  # todo: consume this
+            "col_orient",
             "emptyVal",
         ],
     )
@@ -277,15 +262,8 @@ def gen_grid(bubble_dimensions, global_empty_val, key, rectParams):
 
     q_blocks = []
 
-    # **Simple is powerful**
-    # _h and _v are named with respect to orient == "H", reverse their meaning
-    # when orient = "V"
     _h, _v = (0, 1) if (orient == "H") else (1, 0)
 
-    # print(orig, num_dims, grid_data.shape, grid_data)
-    # orient is also the direction of making q_blocks
-
-    # print(key, num_dims, orig, gaps, big_gaps, orig_gap )
     q_start = orig.copy()
 
     orig_gap = [0, 0]
@@ -307,8 +285,7 @@ def gen_grid(bubble_dimensions, global_empty_val, key, rectParams):
                 gaps[0] * (num_dims[_v] - 1) + bubble_dimensions[_h],
                 gaps[1] * (num_dims[_h] - 1) + bubble_dimensions[_v],
             ]
-            # WATCH FOR BLUNDER(use .copy()) - q_start was getting passed by
-            # reference! (others args read-only)
+
             q_blocks.append(
                 gen_q_block(
                     bubble_dimensions,

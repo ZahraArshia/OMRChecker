@@ -1,16 +1,8 @@
-"""
-Image based feature alignment
-Credits: https://www.learnopencv.com/image-alignment-feature-based-using-opencv-c-python/
-"""
-
 import cv2
 import numpy as np
-
 from src.config import CONFIG_DEFAULTS as config
 from src.utils.imgutils import MainOperations
-
 from .interfaces.ImagePreprocessor import ImagePreprocessor
-
 
 class FeatureBasedAlignment(ImagePreprocessor):
     def __init__(self, options, path):
@@ -34,10 +26,6 @@ class FeatureBasedAlignment(ImagePreprocessor):
         return [self.ref_path]
 
     def apply_filter(self, img, _args):
-
-        # Convert images to grayscale
-        # im1Gray = cv2.cvtColor(im1, cv2.COLOR_BGR2GRAY)
-        # im2Gray = cv2.cvtColor(im2, cv2.COLOR_BGR2GRAY)
 
         img = cv2.normalize(img, 0, 255, norm_type=cv2.NORM_MINMAX)
 

@@ -1,14 +1,4 @@
-"""
-
- OMRChecker
-
- Author: Udayraj Deshmukh
- Github: https://github.com/Udayraj123
-
-"""
-
 import os
-
 from dotmap import DotMap
 
 # Paths
@@ -42,20 +32,14 @@ QTYPE_DATA = {
     #
 }
 
-# Rather these are internal constants & not configs
-# CLR_BLACK = rgb2tuple(CLR_BLACK)
 TEXT_SIZE = 0.95
 CLR_BLACK = (50, 150, 150)
 CLR_WHITE = (250, 250, 250)
 CLR_GRAY = (130, 130, 130)
-# CLR_DARK_GRAY = (190,190,190)
 CLR_DARK_GRAY = (100, 100, 100)
 
 GLOBAL_PAGE_THRESHOLD_WHITE = 200
 GLOBAL_PAGE_THRESHOLD_BLACK = 100
-
-# Filepaths - object is better
-
 
 class Paths:
     def __init__(self, output_dir):

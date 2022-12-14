@@ -1,12 +1,10 @@
 import json
 import re
 from asyncio.log import logger
-
 import jsonschema
-from jsonschema import Draft202012Validator, validate
+from jsonschema import Draft7Validator, validate
 from rich.console import Console
 from rich.table import Table
-
 from src.constants import SCHEMA_DEFAULTS_PATH
 
 
@@ -17,7 +15,7 @@ def load_json(path, **rest):
 
 
 execute_api_schema = load_json(SCHEMA_DEFAULTS_PATH)
-VALIDATOR = Draft202012Validator(execute_api_schema)
+VALIDATOR = Draft7Validator(execute_api_schema)
 
 
 def validate_json(json_data):

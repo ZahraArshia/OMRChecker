@@ -1,9 +1,7 @@
 import logging
 from typing import Union
-
 from rich.logging import RichHandler
-
-from .config import CONFIG_DEFAULTS as config
+from .config import CONFIG_DEFAULTS
 
 FORMAT = "%(message)s"
 
@@ -11,9 +9,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=config.outputs.rich_tracebacks)],
+    handlers=[RichHandler(rich_tracebacks=CONFIG_DEFAULTS.outputs.rich_tracebacks)],
 )
-
 
 class Logger:
     def __init__(
@@ -39,14 +36,12 @@ class Logger:
 
         return inner
 
-    # set stack level to 3 so that the caller of this function is logged, not this function itself.
-    # stack-frame - self.log.debug - logutil - stringify - log method - caller
     @stringify
     def logutil(self, method_type: str, *msg: object, sep=" ") -> None:
         func = getattr(self.log, method_type, None)
         if not func:
             raise AttributeError(f"Logger has no method {method_type}")
-        return func(sep.join(msg), stacklevel=4)
+        return func(sep.join(msg))
 
     def debug(self, *msg: object, sep=" ", end="\n") -> None:
         return self.logutil("debug", *msg, sep=sep)

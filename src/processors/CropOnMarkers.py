@@ -1,8 +1,6 @@
 import os
-
 import cv2
 import numpy as np
-
 from src.config import CONFIG_DEFAULTS as config
 from src.logger import logger
 from src.utils.imgutils import (
@@ -14,11 +12,9 @@ from src.utils.imgutils import (
 
 from .interfaces.ImagePreprocessor import ImagePreprocessor
 
-
 class CropOnMarkers(ImagePreprocessor):
     def __init__(self, marker_ops, cwd):
         self.threshold_circles = []
-        # img_utils = ImageUtils()
 
         # options with defaults
         self.marker_path = os.path.join(
@@ -39,7 +35,6 @@ class CropOnMarkers(ImagePreprocessor):
         marker = cv2.imread(self.marker_path, cv2.IMREAD_GRAYSCALE)
 
         if "sheetToMarkerWidthRatio" in marker_ops:
-            # TODO: processing_width should come through proper channel
             marker = ImageUtils.resize_util(
                 marker,
                 config.dimensions.processing_width
@@ -51,7 +46,6 @@ class CropOnMarkers(ImagePreprocessor):
         )
 
         if self.apply_erode_subtract:
-            # TODO: verify its effectiveness in practical cases
             marker -= cv2.erode(marker, kernel=np.ones((5, 5)), iterations=5)
 
         self.marker = marker
@@ -62,8 +56,7 @@ class CropOnMarkers(ImagePreprocessor):
     def exclude_files(self):
         return [self.marker_path]
 
-    # Resizing the marker within scaleRange at rate of descent_per_step to
-    # find the best match.
+    # Resizing the marker within scaleRange at rate of descent_per_step to find the best match.
     def getBestMatch(self, image_eroded_sub):
 
         descent_per_step = (
@@ -91,15 +84,14 @@ class CropOnMarkers(ImagePreprocessor):
 
             max_t = res.max()
             if all_max_t < max_t:
-                # print('Scale: '+str(s)+', Circle Match: '+str(round(max_t*100,2))+'%')
                 best_scale, all_max_t = s, max_t
 
         if all_max_t < self.min_matching_threshold:
             logger.warning(
                 "\tTemplate matching too low! Consider rechecking preProcessors applied before this."
             )
-            if config.outputs.show_image_level >= 1:
-                show("res", res, 1, 0)
+            # if config.outputs.show_image_level >= 1:
+            #     show("res", res, 1, 0)
 
         if best_scale is None:
             logger.warning(
@@ -129,7 +121,6 @@ class CropOnMarkers(ImagePreprocessor):
 
         best_scale, all_max_t = self.getBestMatch(image_eroded_sub)
         if best_scale is None:
-            # TODO: Plot and see performance of marker_rescale_range
             if config.outputs.show_image_level >= 1:
                 MainOperations.show("Quads", image_eroded_sub)
             return None
@@ -149,8 +140,7 @@ class CropOnMarkers(ImagePreprocessor):
                 max_t < self.min_matching_threshold
                 or abs(all_max_t - max_t) >= self.max_matching_variation
             ):
-                # Warning - code will stop in the middle. Keep Threshold low to
-                # avoid.
+                # Warning - code will stop in the middle. Keep Threshold low to avoid.
                 logger.error(
                     args["current_file"].name,
                     "\nError: No circle found in Quad",
@@ -177,7 +167,6 @@ class CropOnMarkers(ImagePreprocessor):
             pt = [pt[1], pt[0]]
             pt[0] += origins[k][0]
             pt[1] += origins[k][1]
-            # print(">>",pt)
             image = cv2.rectangle(
                 image, tuple(pt), (pt[0] + w, pt[1] + _h), (150, 150, 150), 2
             )
@@ -192,19 +181,12 @@ class CropOnMarkers(ImagePreprocessor):
             centres.append([pt[0] + w / 2, pt[1] + _h / 2])
             sum_t += max_t
         logger.info("Optimal Scale:", best_scale)
-        # analysis data
         self.threshold_circles.append(sum_t / 4)
 
         image = four_point_transform(image, np.array(centres))
-        # appendSaveImg(1,image_eroded_sub)
-        # appendSaveImg(1,image_norm)
 
         ImageUtils.append_save_img(2, image_eroded_sub)
-        # Debugging image -
-        # res = cv2.matchTemplate(image_eroded_sub,optimal_marker,cv2.TM_CCOEFF_NORMED)
-        # res[ : , midw:midw+2] = 255
-        # res[ midh:midh+2, : ] = 255
-        # show("Markers Matching",res)
+        
         if config.outputs.show_image_level >= 2 and config.outputs.show_image_level < 4:
             image_eroded_sub = ImageUtils.resize_util_h(
                 image_eroded_sub, image.shape[0]
@@ -220,6 +202,4 @@ class CropOnMarkers(ImagePreprocessor):
                 0,
                 [0, 0],
             )
-        # iterations : Tuned to 2.
-        # image_eroded_sub = image_norm - cv2.erode(image_norm, kernel=np.ones((5,5)),iterations=2)
         return image
